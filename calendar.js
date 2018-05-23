@@ -17,25 +17,42 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-// Load client secrets from a local file.
-try {
-  const content = fs.readFileSync('client_secret.json');
+init()
 
-  authorize(JSON.parse(content)).then(auth => {
-    
-    const calendarId = 'counterpointconsulting.com_55bgiv636putobabvjbbuunn0s@group.calendar.google.com';
+function init() {
+  setHolidays();
+  inputData();
+}
 
-    createCalendar(auth).then(data => {
-
-      rl.question('What date are the new hires starting? (YYYY-MM-DD) '.cyan, answer => {
-        startDate = moment(answer);
-        enterExcel(auth, data.id);
-      });
-      //createEvent(auth, data.id, 3);
-    });
+//For now, hardcode holiday
+function setHolidays() {
+  var july4th = '2018-07-04';
+   
+  moment.locale('us', {
+    holidays: [july4th],
+    holidayFormat: 'YYYY-MM-DD' 
   });
-} catch (err) {
-  return console.log('Error loading client secret file:', err);
+}
+
+function inputData() {
+  // Load client secrets from a local file.
+  try {
+    const content = fs.readFileSync('client_secret.json');
+
+    authorize(JSON.parse(content)).then(auth => {
+      rl.question('Name of calendar: '.cyan, name => {
+        rl.question('What date are the new hires starting? (YYYY-MM-DD) '.cyan, date => {
+          startDate = moment(date);
+
+          createCalendar(auth, name).then(data => {
+            enterExcel(auth, data.id);
+          });
+        });
+      });
+    });
+  } catch (err) {
+    return console.log('Error loading client secret file:', err);
+  }
 }
 
 function enterExcel(auth, calendarId) {
@@ -46,11 +63,20 @@ function enterExcel(auth, calendarId) {
 
     for (let i = 1; i < workbook.SheetNames.length; i++) {
       let sheet = workbook.SheetNames[i];
-      events = events.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]));
+
+      var sheetEvents = XLSX.utils.sheet_to_json(workbook.Sheets[sheet]);
+
+      _.each(sheetEvents, function (e) {
+        //Set the unit name for each event to the sheet
+        e.unit = sheet;
+        events.push(e);
+      })
+      events = events.concat();
     }
 
     loadEvents(auth, calendarId, events).then(() => {
       console.log('Events loaded');
+      rl.close()
     });
   });
 }
@@ -71,10 +97,10 @@ function loadEvents(auth, calendarId, events) {
         time: obj.Time,
         title: obj.Event,
         description: obj.Description
-      } 
-      console.log(events);
+      }
 
-      if (event.title) {
+      // Only add event if it has a title and time
+      if (event.title && event.time) {
         if (event.title.startsWith("[Assignment]")) {
           
           ///
@@ -83,7 +109,8 @@ function loadEvents(auth, calendarId, events) {
           event.duration = 90;
         }
 
-        promises.push(createEvent(auth, calendarId, event, ['tomxland@gmail.com']));
+        //Don't pass any emails for right now
+        promises.push(createEvent(auth, calendarId, event, []));
       }      
     });
 
@@ -143,7 +170,6 @@ function getAccessToken(oAuth2Client) {
     console.log('Authorize this app by visiting this url:'.cyan, authUrl);
 
     rl.question('Enter the code from that page here: '.cyan, (code) => {
-      rl.close();
       oAuth2Client.getToken(code, (err, token) => {
         if (err) return reject(err);
         oAuth2Client.setCredentials(token);
@@ -185,7 +211,7 @@ function createCalendar(auth, title="CCC Training") {
   })
 }
 
-function createEvent(auth, calendarId, { type, title, location="Large Conference Room", description, day, time, duration=0 }, attendees) {
+function createEvent(auth, calendarId, { type, title, location="Large Conference Room", description, day, time, duration=0 }, attendees, retries=0, delay=500) {
   return new Promise((resolve, reject) => {
     let eventStart = startDate.businessAdd(offset + day);
     let eventTime = moment(time, "h:mma")
@@ -221,8 +247,15 @@ function createEvent(auth, calendarId, { type, title, location="Large Conference
       resource
     }, function(err, event) {
       if (err) {
-        console.log('There was an error contacting the Calendar service: ' + err);
-        return reject(err);
+        //Implement exponential backoff:
+        setTimeout(() => {
+          if (retries < 5) {
+            return createEvent(auth, calendarId, { type, title, location, description, day, time, duration }, attendees, retries+1, delay*2)
+          } else {
+            console.log('There was an error contacting the Calendar service: ' + err);
+            return reject(err);
+          }
+        }, delay);
       }
 
       return resolve(event);
