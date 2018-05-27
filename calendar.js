@@ -1,24 +1,16 @@
 const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
-const moment = require('moment-business-days');
+var moment = require('moment-business-days');
 const _ = require('underscore');
 const colors = require('colors');
 const XLSX = require('xlsx');
 
+const holidayUtils = require('./holidays.js');
+
 // If modifying these scopes, delete credentials.json.
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 const TOKEN_PATH = 'credentials.json';
-
-const days = {
-  SUNDAY : 0,
-  MONDAY : 1,
-  TUESDAY : 2,
-  WEDNESDAY : 3,
-  THURSDAY : 4,
-  FRIDAY : 5,
-  SATURDAY : 6
-};
 
 var startDate, offset = -1;
 
@@ -27,108 +19,9 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
+var thisYearsHolidays, nextYearsHolidays;
+
 inputData();
-
-function setHolidays(year) {
-
-  var holidays = [];
-
-  for (let i = 0; i < 2; i++) {
-    year += i;
-
-    //New Years
-    holidays.push(getObservedHoliday(year, 1, 1));
-
-    //Presidents Day
-    holidays.push(getNthWeekday(year, 2, days.MONDAY, 3));
-
-    //Memorial Day
-    holidays.push(getLastWeekday(year, 5, days.MONDAY));
-
-    //July 4th
-    holidays.push(getObservedHoliday(year, 7, 4));
-
-    //Labor Day
-    holidays.push(getNthWeekday(year, 9, days.MONDAY, 1));
-
-    //Thanksgiving
-    var thanksgiving = getNthWeekday(year, 11, days.THURSDAY, 4);
-    holidays.push(thanksgiving);
-
-    //Black Friday
-    holidays.push(moment(thanksgiving).add(1, 'days').format('YYYY-MM-DD'));
-
-    //Christmas
-    holidays.push(getObservedHoliday(year, 12, 25));
-  }
-
-  moment.locale('us', {
-    holidays: holidays,
-    holidayFormat: 'YYYY-MM-DD' 
-  });
-}
-
-function getLastWeekday(year, month, dayOfWeek) {
-  var date = moment(year + "-" + month + "-01", "YYYY-M-DD");
-
-  date = date.endOf('month');
-
-  var dayOfLast = date.weekday();
-
-  if (dayOfWeek != dayOfLast) {
-    var offset = 0;
-
-    if (dayOfLast > dayOfWeek) {
-      offset = dayOfLast - dayOfWeek;
-    } else {
-      offset = dayOfLast + 7 - dayOfWeek;
-    } 
-
-    date = date.subtract(offset, 'day');
-  }
-
-  return date.format("YYYY-MM-DD");
-}
-
-//Gets the nth dayOfWeek in the given month
-function getNthWeekday(year, month, dayOfWeek, n) {
-  var date = moment(year + "-" + month + "-01", "YYYY-M-DD");
-
-  var counter = 1;
-
-  var dayOfFirst = date.weekday();
-
-  if (dayOfFirst != dayOfWeek) { 
-    var offset = 0;
-
-    if (dayOfFirst > dayOfWeek) {
-      offset = dayOfWeek + 7 - dayOfFirst;
-    } else {
-      offset = dayOfWeek - dayOfFirst;
-    } 
-
-    date = date.add(offset, 'day');
-  }
-
-  while (counter < n) {
-    date = date.add(1, 'week');
-    counter++;
-  }
-
-  return date.format("YYYY-MM-DD");
-}
-
-function getObservedHoliday(year, month, day) {
-  var date = moment(year + "-" + month + "-" + day, "YYYY-M-D");
-
-  if (date.weekday() == 6) { //If Saturday, get previous day
-    date = date.subtract(1, 'day');
-  } else if (date.weekday() == 0) { //If Sunday, get next day
-    date = date.add(1, 'day');
-  }
-
-  return date.format("YYYY-MM-DD");
-}
 
 function inputData() {
   // Load client secrets from a local file.
@@ -138,9 +31,19 @@ function inputData() {
     authorize(JSON.parse(content)).then(auth => {
       rl.question('Name of calendar: '.cyan, name => {
         rl.question('What date are the new hires starting? (YYYY-MM-DD) '.cyan, date => {
-          startDate = moment(date);
 
-          setHolidays(startDate.year());
+          startDate = moment(date);
+          
+          let year = startDate.year();
+          thisYearsHolidays = holidayUtils.getHolidays(year);
+          nextYearsHolidays = holidayUtils.getHolidays(year+1);
+
+          moment.locale('us', {
+            holidays: thisYearsHolidays.concat(nextYearsHolidays),
+            holidayFormat: 'YYYY-MM-DD' 
+          });
+
+          startDate = moment(date);
 
           createCalendar(auth, name).then(data => {
             enterExcel(auth, data.id);
