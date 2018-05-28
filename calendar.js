@@ -92,7 +92,7 @@ module.exports = class Calendar {
 
   createCalendar(title="CCC Training") {
     return new Promise((resolve, reject) => {
-      var resource = {
+      let resource = {
         summary: title,
         timeZone: "America/New_York"
       }
@@ -117,7 +117,7 @@ module.exports = class Calendar {
   }
 
   createEvent({ type, title, location="Large Conference Room", description, day, time, duration=0 }, attendees, retries=0, delay=500) {
-    var context = this;
+    let context = this;
 
     return new Promise((resolve, reject) => {
       let eventStart = context.startDate.businessAdd(day - 1);

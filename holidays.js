@@ -11,7 +11,7 @@ module.exports = {
 
   getHolidays(year) {
 
-    var holidays = [];
+    let holidays = [];
 
     //New Years
     holidays.push(this.getObservedHoliday(year, 1, 1));
@@ -29,7 +29,7 @@ module.exports = {
     holidays.push(this.getNthWeekday(year, 9, this.MONDAY, 1));
 
     //Thanksgiving
-    var thanksgiving = this.getNthWeekday(year, 11, this.THURSDAY, 4);
+    let thanksgiving = this.getNthWeekday(year, 11, this.THURSDAY, 4);
     holidays.push(thanksgiving);
 
     //Black Friday
@@ -42,14 +42,14 @@ module.exports = {
   },
 
   getLastWeekday(year, month, dayOfWeek) {
-    var date = moment(`${year}-${month}-01`, "YYYY-M-DD");
+    let date = moment(`${year}-${month}-01`, "YYYY-M-DD");
 
     date = date.endOf('month');
 
-    var dayOfLast = date.weekday();
+    let dayOfLast = date.weekday();
 
     if (dayOfWeek != dayOfLast) {
-      var offset = 0;
+      let offset = 0;
 
       if (dayOfLast > dayOfWeek) {
         offset = dayOfLast - dayOfWeek;
@@ -65,14 +65,14 @@ module.exports = {
 
   //Gets the nth dayOfWeek in the given month
   getNthWeekday(year, month, dayOfWeek, n) {
-    var date = moment(`${year}-${month}-01`, "YYYY-M-DD");
+    let date = moment(`${year}-${month}-01`, "YYYY-M-DD");
 
-    var counter = 1;
+    let counter = 1;
 
-    var dayOfFirst = date.weekday();
+    let dayOfFirst = date.weekday();
 
     if (dayOfFirst != dayOfWeek) { 
-      var offset = 0;
+      let offset = 0;
 
       if (dayOfFirst > dayOfWeek) {
         offset = dayOfWeek + 7 - dayOfFirst;
@@ -92,7 +92,7 @@ module.exports = {
   },
 
   getObservedHoliday(year, month, day) {
-    var date = moment(`${year}-${month}-${day}`, "YYYY-M-D");
+    let date = moment(`${year}-${month}-${day}`, "YYYY-M-D");
 
     if (date.weekday() == 6) { //If Saturday, get previous day
       date = date.subtract(1, 'day');
