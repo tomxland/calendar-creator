@@ -7,5 +7,7 @@ Install Node.js and the project's npm packages before running.
 
 To run:
 ```
-node calendar.js
+node generate.js
 ```
+
+Follow the prompts to enter the name of the calendar, its start date, and its input file.
