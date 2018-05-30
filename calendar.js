@@ -12,7 +12,13 @@ const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 const TOKEN_PATH = 'credentials.json';
 
 module.exports = class Calendar {
-  constructor(startDate) {
+  constructor(calendarId) {
+    if (calendarId) {
+      this.id = calendarId;
+    }
+  }
+
+  setStartDate(startDate) {
     let year = moment(startDate).year();
     let thisYearsHolidays = holidayUtils.getHolidays(year);
     let nextYearsHolidays = holidayUtils.getHolidays(year+1);
@@ -166,5 +172,34 @@ module.exports = class Calendar {
         return resolve(event);
       });
     })
+  }
+
+  listEvents() {
+    return new Promise((resolve, reject) => {
+      this.calendar.events.list({
+        calendarId: this.id,
+        timeMin: (new Date()).toISOString(),
+        singleEvents: true,
+        orderBy: 'startTime',
+        auth : this.token
+      }, (err, data) => {
+        if (err) {
+          return reject(err);
+        }
+
+        const events = data.data.items;
+        if (events.length) {
+          console.log('Upcoming events:');
+          events.map((event, i) => {
+            const start = event.start.dateTime || event.start.date;
+            console.log(event);
+          });
+        } else {
+          console.log('No upcoming events found.');
+        }
+
+        return resolve(events);
+      });
+    });
   }
 }

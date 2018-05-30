@@ -5,9 +5,20 @@ This project takes in an excel files of sequenced events and adds them to your G
 ## Getting Started
 Install Node.js and the project's npm packages before running.
 
-To run:
+### Calendar Generation
+
+To generate a new calendar:
 ```
 node generate.js
 ```
 
 Follow the prompts to enter the name of the calendar, its start date, and its input file.
+
+### Event Invitation
+
+To invite new attendees to an existing calendar's events:
+```
+node invite.js
+```
+
+Follow the prompts to enter the calendar ID and emails of new invitees.

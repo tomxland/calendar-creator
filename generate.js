@@ -24,10 +24,12 @@ function inputData() {
 
     rl.question('Name of calendar: '.cyan, name => {
       rl.question('What date are the new hires starting? (YYYY-MM-DD): '.cyan, date => {
-        calendar = new Calendar(date);
+        calendar = new Calendar();
+        calendar.setStartDate(date);
 
         calendar.authorize(JSON.parse(content)).then(() => {
           calendar.createCalendar(name).then(() => {
+            console.log(calendar.id);
             enterExcel();
           });
         });
