@@ -11,6 +11,11 @@ const holidayUtils = require('./holidays.js');
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 const TOKEN_PATH = 'credentials.json';
 
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
 module.exports = class Calendar {
   constructor(calendarId) {
     if (calendarId) {
@@ -54,7 +59,7 @@ module.exports = class Calendar {
         return resolve();
 
       } catch (error) {
-        getAccessToken(oAuth2Client).then(auth => {
+        this.getAccessToken(oAuth2Client).then(auth => {
           this.token = auth;
           this.calendar = google.calendar({version: 'v3', aith: this.token});
           return resolve();
