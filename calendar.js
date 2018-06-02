@@ -193,18 +193,41 @@ module.exports = class Calendar {
         }
 
         const events = data.data.items;
-        if (events.length) {
-          console.log('Upcoming events:');
-          events.map((event, i) => {
-            const start = event.start.dateTime || event.start.date;
-            console.log(event);
-          });
-        } else {
-          console.log('No upcoming events found.');
-        }
-
         return resolve(events);
       });
     });
+  }
+
+  updateEvent(event, attendees, retries=0, delay=500) {
+    let context = this;
+
+    return new Promise((resolve, reject) => {
+      if (retries === 0) {
+        _.each(attendees, email => {
+          event.attendees.push({ "email" : email });
+        })
+      }
+
+      context.calendar.events.update({
+        auth : context.token,
+        calendarId : context.id,
+        eventId : event.id,
+        resource : event
+      }, function(err, event) {
+        if (err) {
+          //Implement exponential backoff:
+          setTimeout(() => {
+            if (retries < 5) {
+              return context.updateEvent(event, attendees, retries+1, delay*2)
+            } else {
+              console.log('There was an error contacting the Calendar service: ' + err);
+              return reject(err);
+            }
+          }, delay);
+        }
+
+        return resolve(event);
+      });
+    })
   }
 }

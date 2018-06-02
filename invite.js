@@ -16,15 +16,38 @@ try {
 
   rl.question('Calendar ID: '.cyan, id => {
     rl.question('Enter email address to invite to calendar (separated by commas): '.cyan, input => {
+      id = "counterpointconsulting.com_1bl37gqqkqch8p9a4didd92qa0@group.calendar.google.com";
       calendar = new Calendar(id);
+      let emails = input.split(",");
 
       calendar.authorize(JSON.parse(content)).then(() => {
-        calendar.listEvents().then(() => {
-          rl.close();
+        calendar.listEvents().then((events) => {
+          sendInvites(events, emails).then(() => {
+            console.log('Invitations updated.')
+            rl.close();
+          });
         });
       });
     });
   });
 } catch (err) {
   return console.log('Error loading client secret file:', err);
+}
+
+function sendInvites(events, emails) {
+  return new Promise((resolve, reject) => {
+
+    let dayCounter = 0;
+    let promises = [];
+
+    _.each(events, function(event) {
+      promises.push(calendar.updateEvent(event, emails));
+    });
+
+    Promise.all(promises).then(values => {
+      resolve();
+    }).catch(err => {
+      reject(err);
+    });    
+  });
 }
