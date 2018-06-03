@@ -1,10 +1,26 @@
 {
+  "name": "calendar-creator",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "start": "webpack-dev-server --open"
+  },
   "dependencies": {
     "colors": "^1.2.5",
     "googleapis": "^27.0.0",
+    "lodash": "^4.17.10",
     "moment": "^2.22.1",
     "moment-business-days": "^1.0.6",
     "underscore": "^1.9.0",
     "xlsx": "^0.12.12"
+  },
+  "devDependencies": {
+    "webpack": "^4.10.2",
+    "webpack-cli": "^3.0.1",
+    "webpack-command": "^0.2.0",
+    "webpack-dev-server": "^3.1.4"
   }
 }
