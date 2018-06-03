@@ -1,0 +1,94 @@
+@import url("../../node_modules/bootstrap/dist/css/bootstrap.css");
+
+body {
+  background-color: #00cfa1;
+  color: #FFF;
+  font-family: 'Lato', sans-serif;
+}
+
+.btn-toggle {
+  width: 100%;
+  float: none;
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
+  padding-left: 0;
+  padding-right: 0;
+  display: inline-block;
+  clear: both;
+  padding-top: 46px;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+.btn-toggle::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+@media only screen and (max-width: 768px) {
+  .btn-toggle {
+    display: none;
+  }
+}
+.btn-toggle .track,
+.btn-toggle .handle {
+  margin: auto;
+  border-radius: 50px;
+  box-sizing: border-box;
+}
+.btn-toggle .track {
+  width: 448px;
+  height: 83px;
+  position: relative;
+  color: #fff;
+  background: #00B58D;
+  border: 1px solid #009d79;
+  padding: 19px 32px;
+}
+.btn-toggle .handle {
+  width: 220px;
+  height: 71px;
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  background: #fff;
+  padding-top: 35px;
+  -webkit-transition: left 0.25s;
+  transition: left 0.25s;
+}
+.btn-toggle label {
+  position: absolute;
+  top: 0;
+  line-height: 80px;
+  font-size: 1.17rem;
+  text-transform: uppercase;
+  z-index: 1;
+  -webkit-transition: color 0.25s, padding 0.25s;
+  transition: color 0.25s, padding 0.25s;
+  cursor: pointer;
+}
+.btn-toggle label:nth-child(1) {
+  left: 15.27%;
+  color: #21b291;
+}
+.btn-toggle label:nth-child(2) {
+  right: 13.7%;
+  padding-right: 10px;
+}
+.btn-toggle.toggled .handle {
+  position: absolute;
+  top: 5px;
+  left: 221px;
+}
+.btn-toggle.toggled label:nth-child(1) {
+  color: #fff;
+  padding-left: 10px;
+}
+.btn-toggle.toggled label:nth-child(2) {
+  color: #21b291;
+  padding-right: 0;
+}
