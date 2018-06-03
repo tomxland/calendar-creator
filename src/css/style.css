@@ -92,3 +92,11 @@ body {
   color: #21b291;
   padding-right: 0;
 }
+
+#authorize-button {
+  margin-top: 50px;
+}
+
+#authorize-button > div {
+  margin: 0 auto;
+}
