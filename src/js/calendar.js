@@ -4,10 +4,6 @@ const moment = require('moment-business-days');
 const holidayUtils = require('./holidays.js');
 
 module.exports = class Calendar {
-  constructor(gapi) {
-    this.gapi = gapi;
-  }
-
   setStartDate(startDate) {
     let year = moment(startDate).year();
     let thisYearsHolidays = holidayUtils.getHolidays(year);
@@ -37,6 +33,8 @@ module.exports = class Calendar {
           console.log('The API returned an error: ' + err);
           return reject(err);
         } 
+
+          console.log("Created calendar...");
 
         this.id = data.id;
         this.title = title;

@@ -1,15 +1,19 @@
-import _ from 'lodash';
-import $ from 'jquery';
-import './css/style.css';
-import $script from 'scriptjs';
+const $ = jQuery = require('jquery');
+const $script = require('scriptjs');
 
-import Calendar from './js/calendar.js';
+require('./css/style.css');
+require('messenger');
+Messenger.options = {
+ extraClasses : 'messenger-fixed messenger-on-bottom messenger-on-right',
+ theme : 'air'
+};
 
-import XLSX from 'xlsx';
-import Config from './js/config.js';
+const Config = require('./js/config');
+const Util = require('./js/util');
+const Calendar = require('./js/calendar');
 
-$('.btn-toggle').click(function() {
-  let $el = $(this);
+$('.btn-toggle .track').click(function() {
+  let $el = $(this).parent();
 
   $el.toggleClass('toggled');
 
@@ -27,75 +31,21 @@ $script("https://apis.google.com/js/api.js", function() {
 });
 
 $("#createBtn").click(function () {
-  var cal = new Calendar(gapi);
-  cal.setStartDate("2018-07-02");
+  Util.showLoading();
 
-  var input = $('#template');
+  let cal = new Calendar();
+  let start = $("#startDate").val();
+  let name  = $("#calendarName").val();
 
-  let file    = document.querySelector('#template').files[0];
-  let reader = new FileReader();
-  reader.onload = function(e) {
-    let data = e.target.result;
-    let workbook = XLSX.read(data, {type: 'binary'});
+  cal.setStartDate(start);
 
-    let events = [];
-
-    //Get the trainers:
-    let sheetName = workbook.SheetNames[0];
-    let sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    let trainers = getTrainers(sheet);
-
-    for (let i = 1; i < workbook.SheetNames.length; i++) {
-      let sheetName = workbook.SheetNames[i];
-
-      let sheetEvents = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-      _.each(sheetEvents, event => {
-        //Set the unit name for each event to the sheet
-        event.unit = sheetName;
-        events.push(event);
-      })
-      events = events.concat();
-    }
-
-    console.log(events);
-  };
-  
-  reader.readAsBinaryString(file);
-});
-
-function getTrainers(sheet) {
-  let trainers = {};
-  let unit;
-
-  _.each(sheet, obj => {
-    if (obj.Unit) {
-      unit = obj.Unit;
-
-      trainers[unit] = {
-        lecturers : [],
-        tas : []
-      };
-    }
-
-    if (obj.Lecturers) {
-      trainers[unit].lecturers.push({
-        name : obj.Lecturers,
-        email : obj.__EMPTY
-      });
-    }
-
-    if (obj.TAs) {
-      trainers[unit].tas.push({
-        name : obj.TAs,
-        email : obj.__EMPTY_1
-      });
-    }
+  Util.parseEvents().then(events => {
+    cal.createCalendar(name).then(() => {
+      Util.hideLoading();
+      Messenger().success(`Calendar ${name} created`);
+    });
   });
-
-  return trainers;
-}
+});
 
 /**
  *  Initializes the API client library and sets up sign-in state
