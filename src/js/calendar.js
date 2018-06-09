@@ -4,6 +4,10 @@ const moment = require('moment-business-days');
 const holidayUtils = require('./holidays.js');
 
 module.exports = class Calendar {
+  constructor(gapi) {
+    this.gapi = gapi
+  }
+
   setStartDate(startDate) {
     let year = moment(startDate).year();
     let thisYearsHolidays = holidayUtils.getHolidays(year);
@@ -17,7 +21,7 @@ module.exports = class Calendar {
     this.startDate = moment(startDate);
   }
 
-  createCalendar(title="CCC Training") {
+  create(title="CCC Training") {
     return new Promise((resolve, reject) => {
       let resource = {
         summary: title,
@@ -28,18 +32,16 @@ module.exports = class Calendar {
 
       gapi.client.calendar.calendars.insert({
         resource
-      }, (err, { data }) => {
-        if (err) {
-          console.log('The API returned an error: ' + err);
-          return reject(err);
-        } 
+      }).then(({result}) => {
+        console.log("Created calendar...");
 
-          console.log("Created calendar...");
-
-        this.id = data.id;
+        this.id = result.id;
         this.title = title;
 
-        return resolve(data);
+        return resolve(result);
+      }, err => {
+        console.log('The API returned an error: ' + err);
+        return reject(err);
       });
     })
   }

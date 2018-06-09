@@ -5,7 +5,7 @@ const Calendar = require('./calendar');
 const XLSX = require('xlsx');
 
 const Util = {
-  create() {
+  createCalendar() {
     Util.showLoading();
 
     let cal = new Calendar();
@@ -15,10 +15,11 @@ const Util = {
     cal.setStartDate(start);
 
     Util.parseEvents().then(events => {
-      cal.createCalendar(name).then(() => {
+     cal.create().then(() => {
         Util.hideLoading();
         Messenger().success(`Calendar ${name} created`);
       });
+     
     });
   },
 

@@ -2,7 +2,7 @@ const $ = jQuery = require('jquery');
 const $script = require('scriptjs');
 
 require('./css/style.css');
-require('messenger');
+require('../lib/messenger/js/messenger');
 Messenger.options = {
  extraClasses : 'messenger-fixed messenger-on-bottom messenger-on-right',
  theme : 'air'
@@ -30,7 +30,9 @@ $script("https://apis.google.com/js/api.js", function() {
   gapi.load('client:auth2', initClient);
 });
 
-$("#createBtn").click(function () {
+$("#createBtn").click(Util.createCalendar);
+
+/*function () {
   Util.showLoading();
 
   let cal = new Calendar();
@@ -45,7 +47,7 @@ $("#createBtn").click(function () {
       Messenger().success(`Calendar ${name} created`);
     });
   });
-});
+});*/
 
 /**
  *  Initializes the API client library and sets up sign-in state
