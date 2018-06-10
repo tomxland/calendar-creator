@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "bootstrap": "^4.1.1",
+    "bootstrap-datepicker": "^1.8.0",
     "colors": "^1.2.5",
     "googleapis": "^27.0.0",
     "jquery": "^3.3.1",

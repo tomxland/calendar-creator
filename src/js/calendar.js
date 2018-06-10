@@ -46,6 +46,52 @@ module.exports = class Calendar {
     })
   }
 
+  loadEvents(events, trainers) {
+    let context = this;
+    return new Promise((resolve, reject) => {
+
+      let dayCounter = 0;
+      let promises = [];
+
+      _.each(events, function(obj) {
+        if (obj.Day) {
+          dayCounter++;
+        }
+
+        let unit = obj.unit
+
+        let event = {
+          day: dayCounter,
+          time: obj.Time,
+          title: obj.Event,
+          description: obj.Description
+        }
+
+        // Only add event if it has a title and time
+        if (event.title && event.time) {
+          let emails;
+
+          if (event.title.startsWith("[Assignment]")) { //Send to TAs
+            emails = _.pluck(trainers[unit].tas, "email");
+          } else { //Send to Lecturers
+            emails = _.pluck(trainers[unit].lecturers, "email");
+            event.type = "Lecture";
+            event.duration = 90;
+          }
+
+          //Don't pass any emails for right now
+          promises.push(context.createEvent(event, emails));
+        }      
+      });
+
+      Promise.all(promises).then(values => {
+        resolve();
+      }).catch(err => {
+        reject(err);
+      });    
+    });
+  }
+
   createEvent({ type, title, location="Large Conference Room", description, day, time, duration=0 }, attendees, retries=0, delay=500) {
     let context = this;
 
@@ -76,24 +122,21 @@ module.exports = class Calendar {
         },
       };
 
-      context.calendar.events.insert({
-        auth : context.token,
+      gapi.client.calendar.events.insert({
         calendarId : context.id,
         resource
-      }, function(err, event) {
-        if (err) {
-          //Implement exponential backoff:
-          setTimeout(() => {
-            if (retries < 5) {
-              return context.createEvent({ type, title, location, description, day, time, duration }, attendees, retries+1, delay*2)
-            } else {
-              console.log('There was an error contacting the Calendar service: ' + err);
-              return reject(err);
-            }
-          }, delay);
-        }
-
+      }).then(event => {
         return resolve(event);
+      }, err => {
+        //Implement exponential backoff:
+        setTimeout(() => {
+          if (retries < 5) {
+            return context.createEvent({ type, title, location, description, day, time, duration }, attendees, retries+1, delay*2)
+          } else {
+            console.log('There was an error contacting the Calendar service: ' + err);
+            return reject(err);
+          }
+        }, delay);
       });
     })
   }

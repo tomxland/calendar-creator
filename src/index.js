@@ -1,6 +1,7 @@
 const $ = jQuery = require('jquery');
 const $script = require('scriptjs');
 
+require('bootstrap-datepicker');
 require('./css/style.css');
 require('../lib/messenger/js/messenger');
 Messenger.options = {
@@ -32,22 +33,9 @@ $script("https://apis.google.com/js/api.js", function() {
 
 $("#createBtn").click(Util.createCalendar);
 
-/*function () {
-  Util.showLoading();
-
-  let cal = new Calendar();
-  let start = $("#startDate").val();
-  let name  = $("#calendarName").val();
-
-  cal.setStartDate(start);
-
-  Util.parseEvents().then(events => {
-    cal.createCalendar(name).then(() => {
-      Util.hideLoading();
-      Messenger().success(`Calendar ${name} created`);
-    });
-  });
-});*/
+$('#startDate').datepicker({
+  format: 'yyyy-mm-dd'
+});
 
 /**
  *  Initializes the API client library and sets up sign-in state

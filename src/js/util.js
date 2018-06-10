@@ -14,10 +14,12 @@ const Util = {
 
     cal.setStartDate(start);
 
-    Util.parseEvents().then(events => {
-     cal.create().then(() => {
-        Util.hideLoading();
-        Messenger().success(`Calendar ${name} created`);
+    Util.parseEvents().then(({events, trainers}) => {
+      cal.create(name).then(() => {
+        cal.loadEvents(events, trainers).then(() => {
+          Util.hideLoading();
+          Messenger().success(`Calendar ${name} created`);
+        });
       });
      
     });
@@ -52,7 +54,7 @@ const Util = {
           events = events.concat();
         }
 
-        resolve(events);
+        resolve({events, trainers});
       };
       
       reader.readAsBinaryString(file);
