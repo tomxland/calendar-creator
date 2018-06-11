@@ -1,9 +1,9 @@
 @import url("../../node_modules/bootstrap/dist/css/bootstrap.css");
 @import url("../../node_modules/bootstrap-datepicker/dist/css/bootstrap-datepicker.css");
+@import url("../../node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.css");
 @import url("../../lib/messenger/css/messenger.css");
 @import url("../../lib/messenger/css/messenger-theme-air.css");
 @import url("./loader.css");
-
 
 body {
   background-color: #00cfa1;
@@ -15,11 +15,11 @@ body {
   float: left !important;
 }
 
-.form-control::-webkit-input-placeholder { color: #ddd; }  /* WebKit, Blink, Edge */
-.form-control:-moz-placeholder { color: #ddd; }  /* Mozilla Firefox 4 to 18 */
-.form-control::-moz-placeholder { color: #ddd; }  /* Mozilla Firefox 19+ */
-.form-control:-ms-input-placeholder { color: #ddd; }  /* Internet Explorer 10-11 */
-.form-control::-ms-input-placeholder { color: #ddd; }  /* Microsoft Edge */
+input::-webkit-input-placeholder { color: #ddd !important; } /* WebKit, Blink, Edge */
+input:-moz-placeholder { color: #ddd !important; }  /* Mozilla Firefox 4 to 18 */
+input::-moz-placeholder { color: #ddd !important; }  /* Mozilla Firefox 19+ */
+input:-ms-input-placeholder { color: #ddd !important; }  /* Internet Explorer 10-11 */
+input::-ms-input-placeholder { color: #ddd !important; }  /* Microsoft Edge */
 
 .btn {
   color: #aaa;
@@ -146,4 +146,35 @@ body {
 
 .form-container {
   margin-top: 40px;
+}
+
+.bootstrap-tagsinput {
+  display: block;
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.label-info {
+  background-color: #5bc0de;
+}
+
+.label {
+  display: inline;
+  padding: .2em .6em .3em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em;
 }

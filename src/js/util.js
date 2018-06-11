@@ -25,6 +25,22 @@ const Util = {
     });
   },
 
+  inviteToCalendar() {
+    Util.showLoading();
+
+    let id = $("#calendarSelect").val();
+    let emails = $("#invitees").tagsinput('items');
+
+    let cal = new Calendar(id);
+
+    cal.listEvents().then(events => {
+      cal.sendInvites(events, emails).then(() => {
+        Util.hideLoading();
+        Messenger().success("Invitations to " + $("#invitees").val() + " sent.");
+      });
+    });
+  },
+
   parseEvents() {
     return new Promise((resolve, reject) => {
       let file   = document.querySelector('#template').files[0];
@@ -107,7 +123,6 @@ const Util = {
       gapi.client.calendar.calendarList.list({
         minAccessRole: "owner"
       }).then(({result}) => {
-        console.log(result.items);
         return resolve(result.items);
       }, err => {
         return reject(err);

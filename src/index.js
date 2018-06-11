@@ -2,6 +2,7 @@ const $ = jQuery = require('jquery');
 const $script = require('scriptjs');
 
 require('bootstrap-datepicker');
+require('bootstrap-tagsinput');
 require('./css/style.css');
 require('../lib/messenger/js/messenger');
 Messenger.options = {
@@ -33,9 +34,15 @@ $script("https://apis.google.com/js/api.js", function() {
 });
 
 $("#createBtn").click(Util.createCalendar);
+$("#inviteBtn").click(Util.inviteToCalendar);
 
 $('#startDate').datepicker({
   format: 'yyyy-mm-dd'
+});
+
+$('#invitees').tagsinput({
+  tagClass: 'label label-info big',
+  confirmKeys: [9, 13, 32, 188, 186]
 });
 
 /**
