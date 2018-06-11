@@ -21,6 +21,7 @@ $('.btn-toggle .track').click(function() {
   if ($el.hasClass('toggled')) {
     $("#create-container").hide();
     $("#invite-container").show();
+    Util.reloadCalendarDropdown();
   } else {
     $("#create-container").show();
     $("#invite-container").hide();

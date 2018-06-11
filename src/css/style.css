@@ -15,6 +15,12 @@ body {
   float: left !important;
 }
 
+.form-control::-webkit-input-placeholder { color: #ddd; }  /* WebKit, Blink, Edge */
+.form-control:-moz-placeholder { color: #ddd; }  /* Mozilla Firefox 4 to 18 */
+.form-control::-moz-placeholder { color: #ddd; }  /* Mozilla Firefox 19+ */
+.form-control:-ms-input-placeholder { color: #ddd; }  /* Internet Explorer 10-11 */
+.form-control::-ms-input-placeholder { color: #ddd; }  /* Microsoft Edge */
+
 .btn {
   color: #aaa;
   font-weight: 400;

@@ -93,6 +93,28 @@ const Util = {
     return trainers;
   },
 
+  reloadCalendarDropdown() {
+    $('#calendarSelect').empty();
+    Util.getCalendars().then(list => {
+      _.each(list, cal => {
+        $('#calendarSelect').append(`<option value="${cal.id}">${cal.summary}</option>`)
+      });
+    });
+  },
+
+  getCalendars() {
+    return new Promise((resolve, reject) => {
+      gapi.client.calendar.calendarList.list({
+        minAccessRole: "owner"
+      }).then(({result}) => {
+        console.log(result.items);
+        return resolve(result.items);
+      }, err => {
+        return reject(err);
+      });
+    });
+  },
+
   showLoading() {
     $('.loader').fadeIn(1000);
   },
