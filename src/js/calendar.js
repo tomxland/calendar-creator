@@ -2,6 +2,7 @@ const _ = require('underscore');
 
 const moment = require('moment-business-days');
 const holidayUtils = require('./holidays.js');
+const promiseRetry = require('promise-retry');
 
 module.exports = class Calendar {
   constructor(id) {
@@ -94,7 +95,7 @@ module.exports = class Calendar {
     });
   }
 
-  createEvent({ type, title, location="Large Conference Room", description, day, time, duration=0 }, attendees, retries=0, delay=500) {
+  createEvent({ type, title, location="Large Conference Room", description, day, time, duration=0 }, attendees) {
     let context = this;
 
     return new Promise((resolve, reject) => {
@@ -124,22 +125,29 @@ module.exports = class Calendar {
         },
       };
 
-      gapi.client.calendar.events.insert({
-        calendarId : context.id,
-        resource
-      }).then(event => {
-        return resolve(event);
-      }, err => {
-        //Implement exponential backoff:
-        setTimeout(() => {
-          if (retries < 5) {
-            return context.createEvent({ type, title, location, description, day, time, duration }, attendees, retries+1, delay*2)
+      let retries = 0, delay = 250;
+
+
+      function run() {
+        gapi.client.calendar.events.insert({
+          calendarId : context.id,
+          resource
+        }).then(event => {
+          resolve(event);
+        }).catch(err => {
+          console.log('retry');
+          retries++;
+          delay *= 2;
+
+          if (retries > 5) {
+            reject(err);
           } else {
-            console.log('There was an error contacting the Calendar service: ' + err);
-            return reject(err);
+            //Implement exponential backoff:
+            setTimeout(run, delay);
           }
-        }, delay);
-      });
+        });
+      }
+      run();
     })
   }
 
@@ -171,38 +179,44 @@ module.exports = class Calendar {
       Promise.all(promises).then(values => {
         return resolve();
       }).catch(err => {
+        console.log('rejected',err)
         return reject(err);
       });    
     });
   }
 
-  updateEvent(event, attendees, retries=0, delay=500) {
+  updateEvent(event, attendees) {
     let context = this;
 
     return new Promise((resolve, reject) => {
-      if (retries === 0) {
-        _.each(attendees, email => {
-          event.attendees.push({ "email" : email });
-        })
-      }
 
-      gapi.client.calendar.events.update({
-        calendarId : context.id,
-        eventId : event.id,
-        resource : event
-      }).then(event => {
-        return resolve(event);
-      }, err => {
-        //Implement exponential backoff:
-        setTimeout(() => {
-          if (retries < 5) {
-            return context.updateEvent(event, attendees, retries+1, delay*2)
+      let retries = 0, delay = 250;
+
+      _.each(attendees, email => {
+          event.attendees.push({ "email" : email });
+      })
+
+      function run() {
+        gapi.client.calendar.events.update({
+          calendarId : context.id,
+          eventId : event.id,
+          resource : event
+        }).then(event => {
+          resolve(event);
+        }).catch(err => {
+          console.log('retry');
+          retries++;
+          delay *= 2;
+
+          if (retries > 5) {
+            reject(err);
           } else {
-            console.log('There was an error contacting the Calendar service: ' + err);
-            return reject(err);
+            //Implement exponential backoff:
+            setTimeout(run, delay);
           }
-        }, delay);
-      });
+        });
+      }
+      run();
     })
   }
 }

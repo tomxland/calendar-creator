@@ -18,6 +18,7 @@ const Util = {
       cal.create(name).then(() => {
         cal.loadEvents(events, trainers).then(() => {
           Util.hideLoading();
+          Util.clearInputs();
           Messenger().success(`Calendar ${name} created`);
         });
       });
@@ -36,6 +37,7 @@ const Util = {
     cal.listEvents().then(events => {
       cal.sendInvites(events, emails).then(() => {
         Util.hideLoading();
+        Util.clearInputs();
         Messenger().success("Invitations to " + $("#invitees").val() + " sent.");
       });
     });
@@ -136,6 +138,12 @@ const Util = {
 
   hideLoading() {
     $('.loader').fadeOut(1000);
+  },
+
+  clearInputs() {
+    $('input, select').val("");
+    $("#invitees").tagsinput('removeAll');
+    $('#invitees').tagsinput('refresh');
   }
 };
 
