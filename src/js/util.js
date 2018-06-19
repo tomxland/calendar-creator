@@ -141,7 +141,7 @@ const Util = {
   },
 
   clearInputs() {
-    $('input, select').val("");
+    $('input').val("");
     $("#invitees").tagsinput('removeAll');
     $('#invitees').tagsinput('refresh');
   }
