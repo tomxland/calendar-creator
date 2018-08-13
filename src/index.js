@@ -53,8 +53,8 @@ function initClient() {
   gapi.client.init({
     apiKey: Config.API_KEY,
     client_id: Config.CLIENT_ID,
-    discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
-    scope: "https://www.googleapis.com/auth/calendar"
+    discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest","https://sheets.googleapis.com/$discovery/rest?version=v4"],
+    scope: "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/spreadsheets"
   }).then(function () {
     // Listen for sign-in state changes.
     gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);

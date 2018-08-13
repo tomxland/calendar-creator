@@ -2,6 +2,7 @@ const $ = jQuery = require('jquery');
 const _ = require('underscore');
 
 const Calendar = require('./calendar');
+const Config = require('./config');
 const XLSX = require('xlsx');
 
 const Util = {
@@ -14,7 +15,8 @@ const Util = {
 
     cal.setStartDate(start);
 
-    Util.parseEvents().then(({events, trainers}) => {
+    Util.parseEvents()
+    /*.then(({events, trainers}) => {
       cal.create(name).then(() => {
         cal.loadEvents(events, trainers).then(() => {
           Util.hideLoading();
@@ -23,7 +25,7 @@ const Util = {
         });
       });
      
-    });
+    });*/
   },
 
   inviteToCalendar() {
@@ -44,40 +46,80 @@ const Util = {
   },
 
   parseEvents() {
-    return new Promise((resolve, reject) => {
-      let file   = document.querySelector('#template').files[0];
-      let reader = new FileReader();
-      reader.onload = function(e) {
-        let data = e.target.result;
-        let workbook = XLSX.read(data, {type: 'binary'});
-
-        let events = [];
-
-        //Get the trainers:
-        let sheetName = workbook.SheetNames[0];
-        let sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-        let trainers = Util.getTrainers(sheet);
-
-        for (let i = 1; i < workbook.SheetNames.length; i++) {
-          let sheetName = workbook.SheetNames[i];
-
-          let sheetEvents = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-          _.each(sheetEvents, event => {
-            //Set the unit name for each event to the sheet
-            event.unit = sheetName;
-            events.push(event);
-          })
-          events = events.concat();
-        }
-
-        resolve({events, trainers});
-      };
-      
-      reader.readAsBinaryString(file);
+    Util.getSheets().then((sheets) => {
+      Util.parseSheet(sheets).then(results => {
+        console.log(results);
+      });
     });
   },
+
+  getSheets() {
+    return new Promise((resolve, reject) => {
+      var params = {
+        spreadsheetId: Config.SHEET_ID,
+        ranges: [],
+        includeGridData: false
+      };
+
+      gapi.client.sheets.spreadsheets.get(params).then(({result}) => {
+        var sheets = _.map(result.sheets, sheet => sheet.properties.title);
+        return resolve(sheets);
+      }, err => {
+        console.log('The API returned an error: ' + err);
+        return reject(err);
+      });
+    });
+  },
+
+  parseSheet(sheets) {
+    return new Promise((resolve, reject) => {
+      var params = {
+        spreadsheetId: Config.SHEET_ID,
+        ranges: sheets
+      };
+
+      gapi.client.sheets.spreadsheets.values.batchGet(params).then(({result}) => {
+        return resolve(result);
+      }, err => {
+        console.log('The API returned an error: ' + err);
+        return reject(err);
+      });
+    });
+  },
+
+  /*
+  let file   = document.querySelector('#template').files[0];
+  let reader = new FileReader();
+  reader.onload = function(e) {
+    let data = e.target.result;
+    let workbook = XLSX.read(data, {type: 'binary'});
+
+    let events = [];
+
+    //Get the trainers:
+    let sheetName = workbook.SheetNames[0];
+    let sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    let trainers = Util.getTrainers(sheet);
+
+    for (let i = 1; i < workbook.SheetNames.length; i++) {
+      let sheetName = workbook.SheetNames[i];
+
+      let sheetEvents = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+      _.each(sheetEvents, event => {
+        //Set the unit name for each event to the sheet
+        event.unit = sheetName;
+        events.push(event);
+      })
+      events = events.concat();
+    }
+
+    resolve({events, trainers});
+  };
+  
+  reader.readAsBinaryString(file);
+  */
 
   getTrainers(sheet) {
     let trainers = {};
