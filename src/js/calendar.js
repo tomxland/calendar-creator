@@ -59,27 +59,36 @@ module.exports = class Calendar {
       _.each(events, function(obj) {
         if (obj.Day) {
           dayCounter++;
-        }
+        } 
 
-        let unit = obj.unit
+        let unit = obj.Unit
 
         let event = {
           day: dayCounter,
           time: obj.Time,
           title: obj.Event,
+          type: obj.Type,
+          duration: obj.Duration,
           description: obj.Description
         }
 
         // Only add event if it has a title and time
         if (event.title && event.time) {
+
+          if (!event.duration) {
+            if (event.type == "Assignment") {
+              event.duration = 0;
+            } else {
+              event.duration = 90;
+            }
+          }
+
           let emails;
 
-          if (event.title.startsWith("[Assignment]")) { //Send to TAs
-            emails = _.pluck(trainers[unit].tas, "email");
-          } else { //Send to Lecturers
+          if (event.type == "Lecture") {
             emails = _.pluck(trainers[unit].lecturers, "email");
-            event.type = "Lecture";
-            event.duration = 90;
+          } else {
+            emails = _.pluck(trainers[unit].tas, "email");
           }
 
           //Don't pass any emails for right now

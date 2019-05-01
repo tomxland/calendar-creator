@@ -15,17 +15,17 @@ const Util = {
 
     cal.setStartDate(start);
 
-    Util.parseEvents()
-    /*.then(({events, trainers}) => {
-      cal.create(name).then(() => {
-        cal.loadEvents(events, trainers).then(() => {
-          Util.hideLoading();
-          Util.clearInputs();
-          Messenger().success(`Calendar ${name} created`);
+    Util.getSheets().then((sheets) => {
+      Util.parseSheet(sheets).then(({events, trainers}) => {
+        cal.create(name).then(() => {
+          cal.loadEvents(events, trainers).then(() => {
+            Util.hideLoading();
+            Util.clearInputs();
+            Messenger().success(`Calendar ${name}  created`);
+          });
         });
       });
-     
-    });*/
+    });
   },
 
   inviteToCalendar() {
@@ -41,14 +41,6 @@ const Util = {
         Util.hideLoading();
         Util.clearInputs();
         Messenger().success("Invitations to " + $("#invitees").val() + " sent.");
-      });
-    });
-  },
-
-  parseEvents() {
-    Util.getSheets().then((sheets) => {
-      Util.parseSheet(sheets).then(results => {
-        console.log(results);
       });
     });
   },
@@ -79,7 +71,17 @@ const Util = {
       };
 
       gapi.client.sheets.spreadsheets.values.batchGet(params).then(({result}) => {
-        return resolve(result);
+        let sheets = result.valueRanges;
+        let trainersSheet = sheets.shift();
+
+        let trainers = Util.getTrainers(trainersSheet.values);
+        let events = [];
+
+        _.each(sheets, sheet => {
+          events.push(...Util.getEvents(sheet));
+        })
+
+        return resolve({events, trainers}); //add events
       }, err => {
         console.log('The API returned an error: ' + err);
         return reject(err);
@@ -87,47 +89,15 @@ const Util = {
     });
   },
 
-  /*
-  let file   = document.querySelector('#template').files[0];
-  let reader = new FileReader();
-  reader.onload = function(e) {
-    let data = e.target.result;
-    let workbook = XLSX.read(data, {type: 'binary'});
-
-    let events = [];
-
-    //Get the trainers:
-    let sheetName = workbook.SheetNames[0];
-    let sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    let trainers = Util.getTrainers(sheet);
-
-    for (let i = 1; i < workbook.SheetNames.length; i++) {
-      let sheetName = workbook.SheetNames[i];
-
-      let sheetEvents = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-      _.each(sheetEvents, event => {
-        //Set the unit name for each event to the sheet
-        event.unit = sheetName;
-        events.push(event);
-      })
-      events = events.concat();
-    }
-
-    resolve({events, trainers});
-  };
-  
-  reader.readAsBinaryString(file);
-  */
-
-  getTrainers(sheet) {
+  getTrainers(values) {
     let trainers = {};
     let unit;
 
-    _.each(sheet, obj => {
-      if (obj.Unit) {
-        unit = obj.Unit;
+    for (let i = 1; i < values.length; i++) {
+      let obj = values[i];
+
+      if (obj[0]) {
+        unit = obj[0];
 
         trainers[unit] = {
           lecturers : [],
@@ -135,22 +105,47 @@ const Util = {
         };
       }
 
-      if (obj.Lecturers) {
+      if (obj[1] && obj[2]) { //Has Lecturers
         trainers[unit].lecturers.push({
-          name : obj.Lecturers,
-          email : obj.__EMPTY
+          name : obj[1],
+          email : obj[2]
         });
       }
 
-      if (obj.TAs) {
+      if (obj[3] && obj[4]) { //Has Lecturers
         trainers[unit].tas.push({
-          name : obj.TAs,
-          email : obj.__EMPTY_1
+          name : obj[3],
+          email : obj[4]
         });
       }
-    });
+    }
 
+    console.log(trainers);
     return trainers;
+  },
+
+  getEvents(sheet) {
+    let events = [];
+    let range = sheet.range;
+    let unit = range.substring(0, range.indexOf("!")).replace(/'/g,"");
+
+    let headers = sheet.values[0];
+
+    for (let i = 1; i < sheet.values.length; i++) {
+      let event = {};
+      let row = sheet.values[i];
+
+      if (row.length > 0) {
+        for (let j = 0; j < row.length; j++) {
+          event[headers[j]] = row[j];
+        }
+
+        event.Unit = unit;
+        events.push(event);
+      }
+    }
+
+    return events;
   },
 
   reloadCalendarDropdown() {
